@@ -13,7 +13,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { filterUserForClient } from "~/server/helpers/filterUserForClient";
 import type { User } from "~/server/helpers/filterUserForClient";
-import type { Post } from "@prisma/client";
+import type { Post } from "~/server/db";
 
 // Define a return type for the posts with author data
 type PostWithAuthor = {

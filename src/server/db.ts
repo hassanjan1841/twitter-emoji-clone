@@ -1,6 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import type { Post as PrismaPost } from "@prisma/client";
 
 import { env } from "~/env";
+
+// Export Post type from Prisma
+export type Post = PrismaPost;
 
 /**
  * Type-safe Prisma client creation
