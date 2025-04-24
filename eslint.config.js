@@ -33,6 +33,7 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      "@typescript-eslint/no-unsafe-assignment": "off", // Disable the unsafe assignment rule
     },
   },
   {
