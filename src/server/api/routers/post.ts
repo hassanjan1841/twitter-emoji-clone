@@ -1,7 +1,6 @@
-import { auth, clerkClient, type User } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import type { PrismaClient } from "@prisma/client";
 
 import {
   createTRPCRouter,
@@ -9,14 +8,20 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
-import { Redis } from "@upstash/redis"; // see below for cloudflare and fastly adapters
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { filterUserForClient } from "~/server/helpers/filterUserForClient";
 
-// Use the type from Prisma inferring from the Post model
-type Post = NonNullable<Awaited<ReturnType<PrismaClient["post"]["findFirst"]>>>;
+// Use proper typing for Post objects
+type Post = {
+  id: string;
+  content: string;
+  authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-// Create a new ratelimiter, that allows 10 requests per 10 seconds
+// Create a new ratelimiter
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(3, "1 m"),
@@ -66,7 +71,7 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      return (await addUserDataToPosts([post]))[0];
+      return (await addUserDataToPosts([post as Post]))[0];
     }),
 
   getPostsByUserId: publicProcedure
@@ -80,7 +85,7 @@ export const postRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
 
-      return addUserDataToPosts(posts);
+      return addUserDataToPosts(posts as Post[]);
     }),
 
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -88,7 +93,7 @@ export const postRouter = createTRPCRouter({
       take: 100,
       orderBy: { createdAt: "desc" },
     });
-    return addUserDataToPosts(posts);
+    return addUserDataToPosts(posts as Post[]);
   }),
 
   getLatest: publicProcedure.query(async ({ ctx }) => {
@@ -96,7 +101,7 @@ export const postRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
 
-    return post ?? null;
+    return post ? (post as Post) : null;
   }),
 
   create: privateProcedure
@@ -115,6 +120,6 @@ export const postRouter = createTRPCRouter({
           content: input.content,
         },
       });
-      return post;
+      return post as Post;
     }),
 });

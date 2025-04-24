@@ -1,9 +1,12 @@
 import { createServerSideHelpers } from "@trpc/react-query/server";
-import { appRouter } from "~/server/api/root";
+import { type AppRouter, appRouter } from "~/server/api/root";
 import superjson from "superjson";
 import { db } from "~/server/db";
 
-export const generateSSGHelper = createServerSideHelpers({
+/**
+ * Server-side helper for tRPC to use in getStaticProps/getServerSideProps
+ */
+export const generateSSGHelper = createServerSideHelpers<AppRouter>({
   router: appRouter,
   ctx: {
     db,
