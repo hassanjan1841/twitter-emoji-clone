@@ -1,6 +1,7 @@
 import { auth, clerkClient, type User } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import type { PrismaClient } from "@prisma/client";
 
 import {
   createTRPCRouter,
@@ -11,7 +12,9 @@ import {
 import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
 import { Redis } from "@upstash/redis"; // see below for cloudflare and fastly adapters
 import { filterUserForClient } from "~/server/helpers/filterUserForClient";
-import type { Post } from "@prisma/client";
+
+// Use the type from Prisma inferring from the Post model
+type Post = NonNullable<Awaited<ReturnType<PrismaClient["post"]["findFirst"]>>>;
 
 // Create a new ratelimiter, that allows 10 requests per 10 seconds
 const ratelimit = new Ratelimit({
