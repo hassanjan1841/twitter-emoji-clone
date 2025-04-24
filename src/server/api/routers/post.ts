@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import type { User as ClerkUser } from "@clerk/nextjs/server";
 
 import {
   createTRPCRouter,
@@ -12,15 +13,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { filterUserForClient } from "~/server/helpers/filterUserForClient";
 import type { User } from "~/server/helpers/filterUserForClient";
-
-// Use proper typing for Post objects
-type Post = {
-  id: string;
-  content: string;
-  authorId: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import type { Post } from "@prisma/client";
 
 // Define a return type for the posts with author data
 type PostWithAuthor = {
@@ -36,18 +29,18 @@ const ratelimit = new Ratelimit({
 });
 
 const addUserDataToPosts = async (posts: Post[]): Promise<PostWithAuthor[]> => {
-  const usersList = (await clerkClient()).users
-    .getUserList({
-      userId: posts.map((post) => post.authorId),
-      limit: 100,
-    })
-    .then((users) => users.data.map(filterUserForClient));
-
-  const users = await usersList;
-  console.log(users);
+  const userIds = posts.map((post) => post.authorId);
+  
+  const clerk = await clerkClient();
+  const response = await clerk.users.getUserList({
+    userId: userIds,
+    limit: 100,
+  });
+  
+  const filteredUsers: User[] = response.data.map((user: ClerkUser) => filterUserForClient(user));
 
   return posts.map((post) => {
-    const author = users.find((user) => user.id === post.authorId);
+    const author = filteredUsers.find((user) => user.id === post.authorId);
     if (!author) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -78,7 +71,7 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      return (await addUserDataToPosts([post as Post]))[0];
+      return (await addUserDataToPosts([post]))[0];
     }),
 
   getPostsByUserId: publicProcedure
@@ -92,7 +85,7 @@ export const postRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
 
-      return addUserDataToPosts(posts as Post[]);
+      return addUserDataToPosts(posts);
     }),
 
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -100,7 +93,7 @@ export const postRouter = createTRPCRouter({
       take: 100,
       orderBy: { createdAt: "desc" },
     });
-    return addUserDataToPosts(posts as Post[]);
+    return addUserDataToPosts(posts);
   }),
 
   getLatest: publicProcedure.query(async ({ ctx }) => {
@@ -108,7 +101,7 @@ export const postRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
 
-    return post ? (post as Post) : null;
+    return post;
   }),
 
   create: privateProcedure
@@ -127,6 +120,6 @@ export const postRouter = createTRPCRouter({
           content: input.content,
         },
       });
-      return post as Post;
+      return post;
     }),
 });

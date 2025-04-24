@@ -39,6 +39,12 @@ export default function ProfilePage({ slug }: PageProps) {
 
   if (!user) return <div>User not found</div>;
 
+  // Add type safety for user data
+  const userData = user[0];
+  const profileImageUrl = userData?.imageUrl ?? "";
+  const username = userData?.username ?? "";
+  const userId = userData?.id ?? "";
+
   return (
     <>
       <Head>
@@ -49,7 +55,7 @@ export default function ProfilePage({ slug }: PageProps) {
       <PageLayout>
         <div className="relative h-48 w-full border-b border-slate-400 text-white">
           <Image
-            src={user[0]?.imageUrl ?? ""}
+            src={profileImageUrl}
             alt="profile image"
             className="absolute bottom-0 left-0 -mb-20 ml-4 h-42 w-42 rounded-full"
             width={220}
@@ -58,12 +64,12 @@ export default function ProfilePage({ slug }: PageProps) {
           <div className="h-72"></div>
           <h1 className="pl-10 text-lg">
             {"@"}
-            {user[0]?.username}
+            {username}
           </h1>
           <div className="h-10 border-b border-slate-400" />
         </div>
         <div className="h-32"></div>
-        <ProfileFeed userId={user[0]?.id ?? ""} />
+        <ProfileFeed userId={userId} />
       </PageLayout>
     </>
   );
