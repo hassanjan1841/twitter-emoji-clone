@@ -30,14 +30,16 @@ const ratelimit = new Ratelimit({
 
 const addUserDataToPosts = async (posts: Post[]): Promise<PostWithAuthor[]> => {
   const userIds = posts.map((post) => post.authorId);
-  
+
   const clerk = await clerkClient();
   const response = await clerk.users.getUserList({
     userId: userIds,
     limit: 100,
   });
-  
-  const filteredUsers: User[] = response.data.map((user: ClerkUser) => filterUserForClient(user));
+
+  const filteredUsers: User[] = response.data.map((user: ClerkUser) =>
+    filterUserForClient(user),
+  );
 
   return posts.map((post) => {
     const author = filteredUsers.find((user) => user.id === post.authorId);
