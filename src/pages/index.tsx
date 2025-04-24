@@ -34,7 +34,7 @@ const CreatePostWizard = () => {
     },
     onError: (e) => {
       const errMessage = e.data?.zodError?.fieldErrors;
-      toast.error(errMessage?.content[0] || "Failed to post emoji");
+      toast.error(errMessage?.content?.[0] ?? "Failed to post emoji");
     },
   });
   console.log("user", user);
