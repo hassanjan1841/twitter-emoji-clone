@@ -5,7 +5,7 @@ import { env } from "~/env";
 /**
  * Type-safe Prisma client creation
  */
-const createPrismaClient = () =>
+const createPrismaClient = (): PrismaClient =>
   new PrismaClient({
     log:
       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
@@ -13,7 +13,7 @@ const createPrismaClient = () =>
 
 // Define a proper type for the global object
 type GlobalWithPrisma = typeof globalThis & {
-  prisma: ReturnType<typeof createPrismaClient> | undefined;
+  prisma: PrismaClient | undefined;
 };
 
 // Cast the global object to our properly typed version

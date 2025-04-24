@@ -6,7 +6,7 @@ import { db } from "~/server/db";
 /**
  * Server-side helper for tRPC to use in getStaticProps/getServerSideProps
  */
-export const generateSSGHelper = createServerSideHelpers<AppRouter>({
+export const generateSSGHelper = () => createServerSideHelpers<AppRouter>({
   router: appRouter,
   ctx: {
     db,

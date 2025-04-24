@@ -33,7 +33,7 @@ export default function ProfilePage({ id }: PageProps) {
 }
 
 export async function getStaticProps(context: GetStaticPropsContext) {
-  const ssg = generateSSGHelper;
+  const ssg = generateSSGHelper();
 
   const id = context.params?.id as string;
 

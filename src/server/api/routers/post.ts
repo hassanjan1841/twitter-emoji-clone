@@ -11,6 +11,7 @@ import {
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { filterUserForClient } from "~/server/helpers/filterUserForClient";
+import type { User } from "~/server/helpers/filterUserForClient";
 
 // Use proper typing for Post objects
 type Post = {
@@ -21,6 +22,12 @@ type Post = {
   updatedAt: Date;
 };
 
+// Define a return type for the posts with author data
+type PostWithAuthor = {
+  post: Post;
+  author: User;
+};
+
 // Create a new ratelimiter
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -28,7 +35,7 @@ const ratelimit = new Ratelimit({
   analytics: true,
 });
 
-const addUserDataToPosts = async (posts: Post[]) => {
+const addUserDataToPosts = async (posts: Post[]): Promise<PostWithAuthor[]> => {
   const usersList = (await clerkClient()).users
     .getUserList({
       userId: posts.map((post) => post.authorId),
